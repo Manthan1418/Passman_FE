@@ -1,5 +1,5 @@
 import { useAuth } from "../context/AuthContext";
-import { LogOut, Shield } from "lucide-react";
+import { LogOut, Shield, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function Layout({ children }) {
@@ -18,6 +18,9 @@ export default function Layout({ children }) {
                         </div>
                         <div className="flex items-center">
                             <span className="mr-4 text-sm text-gray-400">{currentUser?.email}</span>
+                            <Link to="/2fa" className="p-2 mr-2 rounded-md hover:bg-gray-700 text-gray-400 hover:text-white transition" title="2FA Settings">
+                                <ShieldCheck className="w-5 h-5" />
+                            </Link>
                             <button
                                 onClick={() => logout()}
                                 className="p-2 rounded-md hover:bg-gray-700 text-gray-400 hover:text-white transition"

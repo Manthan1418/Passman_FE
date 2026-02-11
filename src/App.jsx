@@ -5,19 +5,20 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import AddPassword from './pages/AddPassword';
+import TwoFactorSetup from './pages/TwoFactorSetup';
 import Layout from './components/Layout';
 
 const ProtectedRoute = ({ children }) => {
-    const { currentUser, dbKey } = useAuth();
-    // If not logged in OR key is missing (e.g. refresh), force login
-    if (!currentUser || !dbKey) return <Navigate to="/login" />;
+    const { currentUser, dbKey, twoFactorVerified } = useAuth();
+    // If not logged in OR key is missing (e.g. refresh) OR 2FA not verified, force login
+    if (!currentUser || !dbKey || !twoFactorVerified) return <Navigate to="/login" />;
     return children;
 };
 
 const PublicRoute = ({ children }) => {
-    const { currentUser, dbKey } = useAuth();
-    // Only redirect to dashboard if user is authenticated AND has the key
-    if (currentUser && dbKey) return <Navigate to="/" />;
+    const { currentUser, dbKey, twoFactorVerified } = useAuth();
+    // Only redirect to dashboard if user is authenticated AND has the key AND 2FA is verified
+    if (currentUser && dbKey && twoFactorVerified) return <Navigate to="/" />;
     return children;
 };
 
@@ -55,6 +56,14 @@ function App() {
                         <ProtectedRoute>
                             <Layout>
                                 <AddPassword />
+                            </Layout>
+                        </ProtectedRoute>
+                    } />
+
+                    <Route path="/2fa" element={
+                        <ProtectedRoute>
+                            <Layout>
+                                <TwoFactorSetup />
                             </Layout>
                         </ProtectedRoute>
                     } />
