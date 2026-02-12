@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { encryptData } from '../crypto/vaultCrypto';
+import { encryptData, decryptData } from '../crypto/vaultCrypto';
 import api from '../api/axios';
 import { Lock, Save, RefreshCw, ChevronDown, ChevronUp, Shield, Sparkles } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -11,7 +11,6 @@ export default function AddPassword() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
 
     // Generator State
     const [showGenerator, setShowGenerator] = useState(false);
@@ -23,6 +22,41 @@ export default function AddPassword() {
 
     const { dbKey } = useAuth();
     const navigate = useNavigate();
+    const { id } = useParams();
+    const isEditing = !!id;
+
+    useEffect(() => {
+        if (isEditing && dbKey) {
+            fetchPasswordDetails();
+        }
+    }, [id, dbKey]);
+
+    async function fetchPasswordDetails() {
+        try {
+            setLoading(true);
+            const res = await api.get(`/vault/${id}`);
+            const item = res.data;
+
+            setSite(item.site);
+            setUsername(item.username);
+
+            // Decrypt the password
+            try {
+                const plaintext = await decryptData(dbKey, item.encryptedPassword, item.iv);
+                setPassword(plaintext);
+            } catch (decryptErr) {
+                console.error("Decryption failed", decryptErr);
+                toast.error("Failed to decrypt password");
+            }
+
+        } catch (error) {
+            console.error("Failed to fetch password details", error);
+            toast.error("Failed to load password details");
+            navigate('/');
+        } finally {
+            setLoading(false);
+        }
+    }
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -39,14 +73,21 @@ export default function AddPassword() {
             const { ciphertext, iv } = await encryptData(dbKey, password);
 
             // 2. Send to backend
-            await api.post('/vault', {
+            const payload = {
                 site,
                 username,
                 encryptedPassword: ciphertext,
                 iv: iv
-            });
+            };
 
-            toast.success('Password saved successfully!');
+            if (isEditing) {
+                await api.put(`/vault/${id}`, payload);
+                toast.success('Password updated successfully!');
+            } else {
+                await api.post('/vault', payload);
+                toast.success('Password saved successfully!');
+            }
+
             navigate('/');
         } catch (err) {
             console.error("Full Backend Error:", err.response?.data || err.message);
@@ -99,7 +140,7 @@ export default function AddPassword() {
     return (
         <div className="max-w-2xl mx-auto px-4 fade-in">
             <h1 className="text-2xl font-bold mb-6 flex items-center gradient-text">
-                <Lock className="mr-2 text-indigo-500" /> Add New Credentials
+                <Lock className="mr-2 text-indigo-500" /> {isEditing ? "Edit Credentials" : "Add New Credentials"}
             </h1>
 
             <form onSubmit={handleSubmit} className="glass p-8 rounded-2xl glow space-y-6">
@@ -157,9 +198,9 @@ export default function AddPassword() {
 
 
                 {/* Password Generator Section */}
-                <div 
-                    className="p-5 rounded-xl fade-in" 
-                    style={{ 
+                <div
+                    className="p-5 rounded-xl fade-in"
+                    style={{
                         animationDelay: '0.25s',
                         backgroundColor: 'var(--bg-secondary)',
                         border: '1px solid var(--border-color)'
@@ -194,7 +235,7 @@ export default function AddPassword() {
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
-                                <label 
+                                <label
                                     className="flex items-center space-x-3 cursor-pointer p-3 rounded-xl transition-all card-hover"
                                     style={{ backgroundColor: 'var(--bg-input)' }}
                                 >
@@ -207,7 +248,7 @@ export default function AddPassword() {
                                     />
                                     <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>A-Z</span>
                                 </label>
-                                <label 
+                                <label
                                     className="flex items-center space-x-3 cursor-pointer p-3 rounded-xl transition-all card-hover"
                                     style={{ backgroundColor: 'var(--bg-input)' }}
                                 >
@@ -220,7 +261,7 @@ export default function AddPassword() {
                                     />
                                     <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>a-z</span>
                                 </label>
-                                <label 
+                                <label
                                     className="flex items-center space-x-3 cursor-pointer p-3 rounded-xl transition-all card-hover"
                                     style={{ backgroundColor: 'var(--bg-input)' }}
                                 >
@@ -233,7 +274,7 @@ export default function AddPassword() {
                                     />
                                     <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>0-9</span>
                                 </label>
-                                <label 
+                                <label
                                     className="flex items-center space-x-3 cursor-pointer p-3 rounded-xl transition-all card-hover"
                                     style={{ backgroundColor: 'var(--bg-input)' }}
                                 >
@@ -273,12 +314,12 @@ export default function AddPassword() {
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                Encrypting & Saving...
+                                {isEditing ? "Updating..." : "Encrypting & Saving..."}
                             </span>
                         ) : (
                             <>
                                 <Save className="w-4 h-4 mr-2" />
-                                Encrypt & Save
+                                {isEditing ? "Update Credentials" : "Encrypt & Save"}
                             </>
                         )}
                     </button>

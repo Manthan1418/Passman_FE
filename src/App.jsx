@@ -72,6 +72,14 @@ function AppContent() {
                     </ProtectedRoute>
                 } />
 
+                <Route path="/edit/:id" element={
+                    <ProtectedRoute>
+                        <Layout>
+                            <AddPassword />
+                        </Layout>
+                    </ProtectedRoute>
+                } />
+
                 <Route path="/2fa" element={
                     <ProtectedRoute>
                         <Layout>

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import { decryptData } from '../crypto/vaultCrypto';
-import { Plus, Trash2, Copy, Eye, EyeOff, Loader2, Shield, Key, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Trash2, Copy, Eye, EyeOff, Loader2, Shield, Key, AlertTriangle, CheckCircle, XCircle, Edit } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import zxcvbn from 'zxcvbn';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
@@ -257,6 +257,22 @@ export default function Dashboard() {
                                         >
                                             <Copy className="w-4 h-4" />
                                         </button>
+                                        <Link
+                                            to={`/edit/${item.id}`}
+                                            className="p-2 rounded-lg transition-all inline-flex items-center justify-center"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'var(--glow-color)';
+                                                e.currentTarget.style.color = 'var(--accent-primary)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'transparent';
+                                                e.currentTarget.style.color = 'var(--text-secondary)';
+                                            }}
+                                            title="Edit"
+                                        >
+                                            <Edit className="w-4 h-4" />
+                                        </Link>
                                         <button
                                             onClick={() => handleDelete(item.id)}
                                             className="p-2 rounded-lg transition-all"
