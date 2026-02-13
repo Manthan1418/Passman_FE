@@ -19,6 +19,8 @@ export default function Dashboard() {
 
     useEffect(() => {
         fetchVault();
+        // Preload zxcvbn to avoid delay when rendering the chart
+        import('zxcvbn');
     }, []);
 
     const [strengthStats, setStrengthStats] = useState({ data: [], weakItems: [] });
@@ -28,8 +30,8 @@ export default function Dashboard() {
         const calculateStrength = async () => {
             if (passwords.length === 0) return;
 
-            // Simple debounce/defer to let UI paint first
-            await new Promise(r => setTimeout(r, 100));
+            // Removed artificial delay to show chart faster
+            // await new Promise(r => setTimeout(r, 100));
 
             try {
                 const zxcvbnModule = await import('zxcvbn');
@@ -77,7 +79,7 @@ export default function Dashboard() {
             // Decrypt immediately or lazy load? 
             // Better to lazy load or decrypt all at once if list is small. 
             // Let's decrypt all valid ones now.
-            decryptAll(res.data);
+            await decryptAll(res.data);
         } catch (error) {
             console.error("Failed to fetch vault", error.response?.data || error.message);
             toast.error("Failed to load vault items");
@@ -89,16 +91,22 @@ export default function Dashboard() {
     async function decryptAll(items) {
         if (!dbKey) return;
 
-        const newCache = {};
-        for (const item of items) {
+        // Parallelize decryption for speed
+        const results = await Promise.all(items.map(async (item) => {
             try {
                 const plaintext = await decryptData(dbKey, item.encryptedPassword, item.iv);
-                newCache[item.id] = plaintext;
+                return { id: item.id, plaintext };
             } catch (e) {
                 console.error(`Failed to decrypt item ${item.id}`, e);
-                newCache[item.id] = "ERROR: Decryption Failed";
+                return { id: item.id, plaintext: "ERROR: Decryption Failed" };
             }
-        }
+        }));
+
+        const newCache = {};
+        results.forEach(res => {
+            newCache[res.id] = res.plaintext;
+        });
+
         setDecryptedCache(prev => ({ ...prev, ...newCache }));
     }
 
