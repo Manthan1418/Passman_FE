@@ -269,16 +269,16 @@ export default function Dashboard() {
                                     style={{ animationDelay: `${index * 0.1}s` }}
                                 >
                                     <div className="flex justify-between items-start mb-4">
-                                        <div className="flex items-center">
-                                            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
+                                        <div className="flex items-center min-w-0 flex-1 mr-2">
+                                            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-110 transition-transform">
                                                 <span className="text-white font-bold text-lg">{item.site.charAt(0).toUpperCase()}</span>
                                             </div>
-                                            <div>
-                                                <h3 className="font-bold text-lg truncate max-w-[140px]" style={{ color: 'var(--text-primary)' }}>{item.site}</h3>
-                                                <p className="text-sm truncate max-w-[180px]" style={{ color: 'var(--text-secondary)' }}>{item.username}</p>
+                                            <div className="min-w-0">
+                                                <h3 className="font-bold text-lg break-words leading-tight" style={{ color: 'var(--text-primary)' }}>{item.site}</h3>
+                                                <p className="text-sm break-all" style={{ color: 'var(--text-secondary)' }}>{item.username}</p>
                                             </div>
                                         </div>
-                                        <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex space-x-1 flex-shrink-0">
                                             <button
                                                 onClick={() => copyToClipboard(item.username)}
                                                 className="p-2 rounded-lg transition-all"

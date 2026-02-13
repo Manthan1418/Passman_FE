@@ -398,7 +398,7 @@ function LoginFormContent() {
         <motion.div className="space-y-5">
             <div className="text-center">
                 <Shield className="mx-auto h-12 w-12 text-indigo-400" />
-                <h2 className="mt-4 text-3xl font-bold gradient-text">Sign in to PassMan</h2>
+                <h2 className="mt-4 text-3xl font-bold gradient-text">Sign in to Cipherlock</h2>
                 <p className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>Secure password management</p>
             </div>
 

@@ -28,7 +28,7 @@ export default function Layout({ children }) {
                         <div className="flex items-center">
                             <Link to="/" className="flex items-center group">
                                 <Shield className="w-8 h-8 text-indigo-500 mr-2 shield-bounce group-hover:text-indigo-400 transition-colors" />
-                                <span className="font-bold text-xl tracking-tight gradient-text">PassMan</span>
+                                <span className="font-bold text-xl tracking-tight gradient-text">Cipherlock</span>
                             </Link>
                         </div>
                         <div className="flex items-center">
