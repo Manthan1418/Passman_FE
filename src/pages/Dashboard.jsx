@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import { decryptData } from '../crypto/vaultCrypto';
 import { Plus, Trash2, Copy, Eye, EyeOff, Loader2, Shield, Key, AlertTriangle, CheckCircle, XCircle, Edit, Bell } from 'lucide-react';
+import PasswordCard from '../components/PasswordCard';
 import { toast } from 'react-hot-toast';
 // import zxcvbn from 'zxcvbn'; // Deferred import
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
@@ -17,17 +18,7 @@ export default function Dashboard() {
     const [visiblePasswords, setVisiblePasswords] = useState({}); // Toggle visibility per item
     const [showNotifications, setShowNotifications] = useState(false);
 
-    async function handleEnableBiometrics() {
-        try {
-            const success = await enableBiometrics();
-            if (success) {
-                toast.success("Biometrics enabled for this device!");
-            }
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to enable biometrics: " + error.message);
-        }
-    }
+
 
     useEffect(() => {
         fetchVault();
@@ -178,16 +169,7 @@ export default function Dashboard() {
                             )}
                         </button>
 
-                        <button
-                            onClick={handleEnableBiometrics}
-                            className="btn-glow p-2 rounded-xl bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 hover:text-indigo-300 transition-all"
-                            title="Enable Biometrics"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-2.6 4.63a4 4 0 1 1-5.36-6.36C2.87 9.54 4.18 9 5.25 9c.28 0 .56.09.81.27m5.94 10.73c2.5-2.12 2.6-3.61 2.6-4.63a2 2 0 0 0-2-2c-1.07 0-2.38.54-3.21 1.27a4 4 0 1 1-5.36-6.36" />
-                                <path d="M12 2v20" />
-                            </svg>
-                        </button>
+
 
                         {showNotifications && (
                             <div className="absolute right-0 mt-2 w-80 origin-top-right rounded-xl glass border border-gray-700/50 shadow-xl z-[100] overflow-hidden fade-in">
@@ -261,119 +243,17 @@ export default function Dashboard() {
                 <>
                     <div className="flex flex-col-reverse lg:flex-row gap-8 items-start fade-in">
                         {/* Cards Grid - Left Side */}
-                        <div className="flex-1 w-full grid gap-5 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 stagger-children">
+                        <div className="flex-1 w-full grid gap-5 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 stagger-children">
                             {passwords.map((item, index) => (
-                                <div
-                                    key={item.id}
-                                    className="glass p-5 rounded-2xl card-hover glow-hover group"
-                                    style={{ animationDelay: `${index * 0.1}s` }}
-                                >
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="flex items-center min-w-0 flex-1 mr-2">
-                                            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center mr-3 flex-shrink-0 group-hover:scale-110 transition-transform">
-                                                <span className="text-white font-bold text-lg">{item.site.charAt(0).toUpperCase()}</span>
-                                            </div>
-                                            <div className="min-w-0">
-                                                <h3 className="font-bold text-lg break-words leading-tight" style={{ color: 'var(--text-primary)' }}>{item.site}</h3>
-                                                <p className="text-sm break-all" style={{ color: 'var(--text-secondary)' }}>{item.username}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex space-x-1 flex-shrink-0">
-                                            <button
-                                                onClick={() => copyToClipboard(item.username)}
-                                                className="p-2 rounded-lg transition-all"
-                                                style={{ color: 'var(--text-secondary)' }}
-                                                onMouseEnter={(e) => {
-                                                    e.currentTarget.style.backgroundColor = 'var(--glow-color)';
-                                                    e.currentTarget.style.color = 'var(--accent-primary)';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    e.currentTarget.style.backgroundColor = 'transparent';
-                                                    e.currentTarget.style.color = 'var(--text-secondary)';
-                                                }}
-                                                title="Copy Username"
-                                            >
-                                                <Copy className="w-4 h-4" />
-                                            </button>
-                                            <Link
-                                                to={`/edit/${item.id}`}
-                                                className="p-2 rounded-lg transition-all inline-flex items-center justify-center"
-                                                style={{ color: 'var(--text-secondary)' }}
-                                                onMouseEnter={(e) => {
-                                                    e.currentTarget.style.backgroundColor = 'var(--glow-color)';
-                                                    e.currentTarget.style.color = 'var(--accent-primary)';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    e.currentTarget.style.backgroundColor = 'transparent';
-                                                    e.currentTarget.style.color = 'var(--text-secondary)';
-                                                }}
-                                                title="Edit"
-                                            >
-                                                <Edit className="w-4 h-4" />
-                                            </Link>
-                                            <button
-                                                onClick={() => handleDelete(item.id)}
-                                                className="p-2 rounded-lg transition-all"
-                                                style={{ color: 'var(--text-secondary)' }}
-                                                onMouseEnter={(e) => {
-                                                    e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
-                                                    e.currentTarget.style.color = '#ef4444';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    e.currentTarget.style.backgroundColor = 'transparent';
-                                                    e.currentTarget.style.color = 'var(--text-secondary)';
-                                                }}
-                                                title="Delete"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        className="p-3 rounded-xl flex items-center justify-between backdrop-blur-sm"
-                                        style={{
-                                            backgroundColor: 'var(--bg-secondary)',
-                                            border: '1px solid var(--border-color)'
-                                        }}
-                                    >
-                                        <div className="font-mono text-sm truncate mr-2" style={{ color: 'var(--text-secondary)' }}>
-                                            {visiblePasswords[item.id]
-                                                ? (decryptedCache[item.id] || "Decrypting...")
-                                                : "••••••••••••"}
-                                        </div>
-                                        <div className="flex items-center space-x-1" style={{ color: 'var(--text-secondary)' }}>
-                                            <button
-                                                onClick={() => toggleVisibility(item.id)}
-                                                className="p-1.5 rounded-lg transition-all"
-                                                onMouseEnter={(e) => {
-                                                    e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
-                                                    e.currentTarget.style.color = 'var(--text-primary)';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    e.currentTarget.style.backgroundColor = 'transparent';
-                                                    e.currentTarget.style.color = 'var(--text-secondary)';
-                                                }}
-                                            >
-                                                {visiblePasswords[item.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                            </button>
-                                            <button
-                                                onClick={() => copyToClipboard(decryptedCache[item.id])}
-                                                className="p-1.5 rounded-lg transition-all"
-                                                onMouseEnter={(e) => {
-                                                    e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
-                                                    e.currentTarget.style.color = 'var(--text-primary)';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    e.currentTarget.style.backgroundColor = 'transparent';
-                                                    e.currentTarget.style.color = 'var(--text-secondary)';
-                                                }}
-                                                title="Copy Password"
-                                            >
-                                                <Copy className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
+                                <div key={item.id} style={{ animationDelay: `${index * 0.1}s` }}>
+                                    <PasswordCard
+                                        item={item}
+                                        isVisible={visiblePasswords[item.id]}
+                                        decryptedPassword={decryptedCache[item.id]}
+                                        onToggleVisibility={toggleVisibility}
+                                        onCopy={copyToClipboard}
+                                        onDelete={handleDelete}
+                                    />
                                 </div>
                             ))}
                         </div>
@@ -385,7 +265,7 @@ export default function Dashboard() {
                                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-50"></div>
                                 <h3 className="text-lg font-bold mb-2 z-10" style={{ color: 'var(--text-primary)' }}>Security Score</h3>
 
-                                <div className="w-full h-48 relative z-10">
+                                <div className="w-full h-48 relative z-10 outline-none focus:outline-none active:outline-none">
                                     <ResponsiveContainer width="100%" height={200}>
                                         <PieChart>
                                             <Pie
@@ -396,7 +276,7 @@ export default function Dashboard() {
                                                 outerRadius={80}
                                                 paddingAngle={5}
                                                 dataKey="value"
-                                                stroke="none"
+                                                stroke="white"
                                             >
                                                 {strengthStats.data.map((entry, index) => (
                                                     <Cell key={`cell-${index}`} fill={entry.color} />

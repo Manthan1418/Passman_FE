@@ -1,6 +1,7 @@
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
-import { LogOut, Shield, ShieldCheck, Sun, Moon } from "lucide-react";
+import { LogOut, Shield, ShieldCheck, Sun, Moon, Fingerprint } from "lucide-react";
+import { toast } from 'react-hot-toast';
 import { Link } from "react-router-dom";
 
 
@@ -15,7 +16,7 @@ function Particles() {
 }
 
 export default function Layout({ children }) {
-    const { logout, currentUser } = useAuth();
+    const { logout, currentUser, enableBiometrics } = useAuth();
     const { theme, toggleTheme } = useTheme();
 
     return (
@@ -50,6 +51,29 @@ export default function Layout({ children }) {
                                 title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
                             >
                                 {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        const success = await enableBiometrics();
+                                        if (success) toast.success("Biometrics enabled!");
+                                    } catch (e) {
+                                        toast.error(e.message);
+                                    }
+                                }}
+                                className="p-2 mr-2 rounded-lg transition-all duration-300 hover:scale-110"
+                                style={{ color: 'var(--text-secondary)' }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = 'var(--glow-color)';
+                                    e.currentTarget.style.color = 'var(--accent-primary)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                    e.currentTarget.style.color = 'var(--text-secondary)';
+                                }}
+                                title="Enable Biometrics"
+                            >
+                                <Fingerprint className="w-5 h-5" />
                             </button>
                             <Link
                                 to="/2fa"
