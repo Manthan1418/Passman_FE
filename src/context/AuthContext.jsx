@@ -114,6 +114,68 @@ export function AuthProvider({ children }) {
         return signOut(auth);
     }
 
+    // ==========================================
+    // BIOMETRIC AUTH METHODS
+    // ==========================================
+
+    async function enableBiometrics() {
+        if (!currentUser || !dbKey) throw new Error("Must be logged in to enable biometrics");
+
+        try {
+            // 1. Register Credential
+            const { default: apiWebAuthn } = await import('../api/webauthn');
+            await apiWebAuthn.registerBiometrics();
+
+            // 2. Save exported key to LocalStorage 'biometric_vault_key'
+            const exportedKey = await exportKey(dbKey);
+            localStorage.setItem('biometric_vault_key', exportedKey);
+
+            // 3. Save User UID to LocalStorage for retrieval during login (since we don't have email-to-uid lookup)
+            localStorage.setItem('webauthn_user_uid', currentUser.uid);
+
+            return true;
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
+    }
+
+    async function loginWithBiometrics() {
+        try {
+            const { default: apiWebAuthn } = await import('../api/webauthn');
+
+            // Retrieve stored UID
+            const uid = localStorage.getItem('webauthn_user_uid');
+
+            if (!uid) {
+                console.warn("WebAuthn UID not found in localStorage.");
+                throw new Error("Biometric login not configured on this device. Please login with password and enable biometrics again.");
+            }
+
+            const result = await apiWebAuthn.loginWithBiometrics(null, uid);
+
+            if (result.verified) {
+                // 1. Sign in with Firebase (using custom token from backend)
+                const { signInWithCustomToken } = await import("firebase/auth");
+                await signInWithCustomToken(auth, result.token);
+
+                // 2. Try to restore Vault Key
+                const bioKey = localStorage.getItem('biometric_vault_key');
+                if (bioKey) {
+                    const key = await importKey(bioKey);
+                    setDbKey(key);
+                    sessionStorage.setItem('vaultKey', bioKey);
+                }
+
+                setTwoFactorVerified(true);
+                return true;
+            }
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
+    }
+
     const value = {
         currentUser,
         dbKey,
@@ -122,7 +184,9 @@ export function AuthProvider({ children }) {
         setTwoFactorVerified,
         signup,
         login,
-        logout
+        logout,
+        enableBiometrics,
+        loginWithBiometrics
     };
 
     useEffect(() => {

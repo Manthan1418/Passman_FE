@@ -12,10 +12,22 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, L
 export default function Dashboard() {
     const [passwords, setPasswords] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { dbKey } = useAuth();
+    const { dbKey, enableBiometrics } = useAuth();
     const [decryptedCache, setDecryptedCache] = useState({}); // simple caching to avoid re-decrypting on every render
     const [visiblePasswords, setVisiblePasswords] = useState({}); // Toggle visibility per item
     const [showNotifications, setShowNotifications] = useState(false);
+
+    async function handleEnableBiometrics() {
+        try {
+            const success = await enableBiometrics();
+            if (success) {
+                toast.success("Biometrics enabled for this device!");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to enable biometrics: " + error.message);
+        }
+    }
 
     useEffect(() => {
         fetchVault();
@@ -164,6 +176,17 @@ export default function Dashboard() {
                             {strengthStats.weakItems.length > 0 && (
                                 <span className="absolute top-1 right-1 block h-2.5 w-2.5 rounded-full ring-2 ring-[#0f172a] bg-red-500"></span>
                             )}
+                        </button>
+
+                        <button
+                            onClick={handleEnableBiometrics}
+                            className="btn-glow p-2 rounded-xl bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 hover:text-indigo-300 transition-all"
+                            title="Enable Biometrics"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-2.6 4.63a4 4 0 1 1-5.36-6.36C2.87 9.54 4.18 9 5.25 9c.28 0 .56.09.81.27m5.94 10.73c2.5-2.12 2.6-3.61 2.6-4.63a2 2 0 0 0-2-2c-1.07 0-2.38.54-3.21 1.27a4 4 0 1 1-5.36-6.36" />
+                                <path d="M12 2v20" />
+                            </svg>
                         </button>
 
                         {showNotifications && (
