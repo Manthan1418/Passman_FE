@@ -18,6 +18,9 @@ export default {
                 if (error.name === 'InvalidStateError') {
                     throw new Error('Authenticator interface already active or key already registered.');
                 }
+                if (error.name === 'NotAllowedError') {
+                    throw new Error('Request timed out, was cancelled, or window lost focus. Please try again and stay on this tab.');
+                }
                 throw error;
             }
 
