@@ -42,6 +42,7 @@ function Particles() {
 // TOP SEMICIRCLE (Login button - visible when on Register)
 // ============================================
 function TopSemicircle({ isVisible, onSwitch, isAnimating }) {
+    const { isDark } = useTheme();
     const handleClick = () => {
         if (!isAnimating && isVisible) {
             onSwitch();
@@ -87,7 +88,7 @@ function TopSemicircle({ isVisible, onSwitch, isAnimating }) {
                     rx="70"
                     ry="50"
                     fill="url(#topSemicircleGradient)"
-                    filter="url(#topSemicircleShadow)"
+                    filter={isDark ? "url(#topSemicircleShadow)" : "none"}
                 />
             </svg>
             <motion.div
@@ -123,6 +124,7 @@ function TopSemicircle({ isVisible, onSwitch, isAnimating }) {
 // BOTTOM SEMICIRCLE (Register button - visible when on Login)
 // ============================================
 function BottomSemicircle({ isVisible, onSwitch, isAnimating }) {
+    const { isDark } = useTheme();
     const handleClick = () => {
         if (!isAnimating && isVisible) {
             onSwitch();
@@ -167,7 +169,7 @@ function BottomSemicircle({ isVisible, onSwitch, isAnimating }) {
                     rx="70"
                     ry="50"
                     fill="url(#bottomSemicircleGradient)"
-                    filter="url(#bottomSemicircleShadow)"
+                    filter={isDark ? "url(#bottomSemicircleShadow)" : "none"}
                 />
             </svg>
             <motion.div

@@ -11,7 +11,7 @@ import TwoFactorSetup from './pages/TwoFactorSetup';
 import Layout from './components/Layout';
 
 const ProtectedRoute = ({ children }) => {
-    const { currentUser, loading } = useAuth();
+    const { currentUser, loading, twoFactorVerified } = useAuth();
 
     if (loading) {
         return <div className="min-h-screen flex items-center justify-center bg-gray-900 text-indigo-500">
@@ -25,6 +25,9 @@ const ProtectedRoute = ({ children }) => {
     // If not logged in, force login
     if (!currentUser) return <Navigate to="/login" />;
 
+    // Block access if 2FA not verified
+    if (!twoFactorVerified) return <Navigate to="/login" />;
+
     // Note: We do NOT check for dbKey here anymore. 
     // If dbKey is missing (e.g. refresh), the Dashboard/Components will show a "Vault Locked" screen.
 
@@ -32,9 +35,9 @@ const ProtectedRoute = ({ children }) => {
 };
 
 const PublicRoute = ({ children }) => {
-    const { currentUser } = useAuth();
-    // Redirect to dashboard if user is authenticated
-    if (currentUser) return <Navigate to="/" />;
+    const { currentUser, twoFactorVerified } = useAuth();
+    // Redirect to dashboard if user is authenticated AND 2FA is verified (or not required)
+    if (currentUser && twoFactorVerified) return <Navigate to="/" />;
     return children;
 };
 
