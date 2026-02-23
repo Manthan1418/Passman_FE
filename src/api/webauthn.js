@@ -48,11 +48,30 @@ export default {
             const options = resp.data;
 
             // 2. Pass options to browser
+            // Mobile Safari/Chrome often fail usernameless auth if allowCredentials is empty 
+            // AND we don't present an autofill UI or if they strictly expect a resident key that isn't found.
+            // Some mobile devices also choke on userVerification='preferred' if FaceID is locked out.
+            let webAuthnOptions = { ...options };
+
+            // If the server didn't provide allowCredentials, we can try to guide the browser.
+            // Some mobile authenticators require an explicit empty array or omit it entirely depending on the OS version.
+            if (!webAuthnOptions.allowCredentials || webAuthnOptions.allowCredentials.length === 0) {
+                delete webAuthnOptions.allowCredentials; // Let the browser decide instead of forcing empty array
+            }
+
+            // Try to relax userVerification for mobile (sometimes it helps if FaceID is wonky)
+            if (webAuthnOptions.userVerification === 'preferred') {
+                webAuthnOptions.userVerification = 'discouraged';
+            }
+
             let asseResp;
             try {
-                // Fix: Pass options as { optionsJSON: ... }
-                asseResp = await startAuthentication({ optionsJSON: options });
+                asseResp = await startAuthentication({ optionsJSON: webAuthnOptions });
             } catch (error) {
+                // If it fails with NotAllowedError on mobile, it's usually because the 
+                // native biometric prompt was either cancelled or no resident key was matched.
+                // We re-throw to be caught silently by Login.jsx.
+                console.warn('WebAuthn startAuthentication failed:', error);
                 throw error;
             }
 
