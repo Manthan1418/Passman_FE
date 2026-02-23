@@ -310,28 +310,17 @@ function LoginFormContent() {
     useEffect(() => {
         async function checkAvailability() {
             try {
-                // Ensure browser support
-                const { browserSupportsWebAuthn, platformAuthenticatorIsAvailable } = await import('@simplewebauthn/browser');
-                if (!browserSupportsWebAuthn()) {
-                    setIsBiometricAvailable(false);
-                    return;
-                }
-
-                // Ensure platform authenticator is available
-                const isPlatformAuthAvailable = await platformAuthenticatorIsAvailable();
-                if (!isPlatformAuthAvailable) {
-                    setIsBiometricAvailable(false);
-                    return;
-                }
-
-                // Check server signal/registration on this device
+                // Check if user has registered passkey on this device (via UID stored in localStorage)
                 const uid = localStorage.getItem('webauthn_user_uid');
-                if (!uid) {
-                    setIsBiometricAvailable(false);
-                    return;
-                }
 
-                setIsBiometricAvailable(true);
+                // If UID is present, we assume biometrics might be available and let the browser handle it.
+                // The @simplewebauthn platformAuthenticatorIsAvailable check sometimes returns false 
+                // on mobile browsers even when passkeys are available, so we rely more on the UID.
+                if (uid) {
+                    setIsBiometricAvailable(true);
+                } else {
+                    setIsBiometricAvailable(false);
+                }
             } catch (err) {
                 console.error('Error checking biometric availability:', err);
                 setIsBiometricAvailable(false);
