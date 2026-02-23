@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
@@ -305,6 +305,42 @@ function LoginFormContent() {
     const [twoFactorCode, setTwoFactorCode] = useState('');
     const navigate = useNavigate();
 
+    const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
+
+    useEffect(() => {
+        async function checkAvailability() {
+            try {
+                // Ensure browser support
+                const { browserSupportsWebAuthn, platformAuthenticatorIsAvailable } = await import('@simplewebauthn/browser');
+                if (!browserSupportsWebAuthn()) {
+                    setIsBiometricAvailable(false);
+                    return;
+                }
+
+                // Ensure platform authenticator is available
+                const isPlatformAuthAvailable = await platformAuthenticatorIsAvailable();
+                if (!isPlatformAuthAvailable) {
+                    setIsBiometricAvailable(false);
+                    return;
+                }
+
+                // Check server signal/registration on this device
+                const uid = localStorage.getItem('webauthn_user_uid');
+                if (!uid) {
+                    setIsBiometricAvailable(false);
+                    return;
+                }
+
+                setIsBiometricAvailable(true);
+            } catch (err) {
+                console.error('Error checking biometric availability:', err);
+                setIsBiometricAvailable(false);
+            }
+        }
+
+        checkAvailability();
+    }, []);
+
     async function handleBiometricLogin() {
         try {
             setLoading(true);
@@ -314,8 +350,9 @@ function LoginFormContent() {
                 navigate('/');
             }
         } catch (err) {
-            console.error(err);
-            toast.error('Biometric login failed. ' + (err.message || ''));
+            console.error('Biometric authentication cancelled or failed:', err);
+            // Catch silently and fall back to password login.
+            // No toast.error is displayed to avoid technical WebAuthn errors on mobile.
         } finally {
             setLoading(false);
         }
@@ -446,18 +483,20 @@ function LoginFormContent() {
                         Sign In
                     </AnimatedButton>
 
-                    <button
-                        type="button"
-                        onClick={handleBiometricLogin}
-                        disabled={loading}
-                        className="w-full flex justify-center items-center py-3 px-4 border text-base font-semibold rounded-xl text-indigo-500 bg-indigo-500/10 hover:bg-indigo-500/20 focus:outline-none transition-colors duration-200 border-indigo-500/30"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-2.6 4.63a4 4 0 1 1-5.36-6.36C2.87 9.54 4.18 9 5.25 9c.28 0 .56.09.81.27m5.94 10.73c2.5-2.12 2.6-3.61 2.6-4.63a2 2 0 0 0-2-2c-1.07 0-2.38.54-3.21 1.27a4 4 0 1 1-5.36-6.36" />
-                            <path d="M12 2v20" />
-                        </svg>
-                        Login with Passkey
-                    </button>
+                    {isBiometricAvailable && (
+                        <button
+                            type="button"
+                            onClick={handleBiometricLogin}
+                            disabled={loading}
+                            className="w-full flex justify-center items-center py-3 px-4 border text-base font-semibold rounded-xl text-indigo-500 bg-indigo-500/10 hover:bg-indigo-500/20 focus:outline-none transition-colors duration-200 border-indigo-500/30"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-2.6 4.63a4 4 0 1 1-5.36-6.36C2.87 9.54 4.18 9 5.25 9c.28 0 .56.09.81.27m5.94 10.73c2.5-2.12 2.6-3.61 2.6-4.63a2 2 0 0 0-2-2c-1.07 0-2.38.54-3.21 1.27a4 4 0 1 1-5.36-6.36" />
+                                <path d="M12 2v20" />
+                            </svg>
+                            Login with Passkey
+                        </button>
+                    )}
                 </motion.div>
             </form>
         </motion.div>

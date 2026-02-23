@@ -149,7 +149,7 @@ export function AuthProvider({ children }) {
 
             if (!uid) {
                 console.warn("WebAuthn UID not found in localStorage.");
-                throw new Error("Biometric login not configured on this device. Please login with password and enable biometrics again.");
+                throw new Error("Biometric sign-in isn't set up on this device yet.");
             }
 
             const result = await apiWebAuthn.loginWithBiometrics(null, uid);
