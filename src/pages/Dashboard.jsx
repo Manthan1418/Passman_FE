@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import { decryptData } from '../crypto/vaultCrypto';
-import { Plus, Trash2, Copy, Eye, EyeOff, Loader2, Shield, Key, AlertTriangle, CheckCircle, XCircle, Edit, Bell } from 'lucide-react';
+import { Plus, Trash2, Copy, Eye, EyeOff, Loader2, Shield, Key, AlertTriangle, CheckCircle, XCircle, Edit } from 'lucide-react';
 import PasswordCard from '../components/PasswordCard';
 import { toast } from 'react-hot-toast';
 // import zxcvbn from 'zxcvbn'; // Deferred import
@@ -16,7 +16,7 @@ export default function Dashboard() {
     const { dbKey, enableBiometrics } = useAuth();
     const [decryptedCache, setDecryptedCache] = useState({}); // simple caching to avoid re-decrypting on every render
     const [visiblePasswords, setVisiblePasswords] = useState({}); // Toggle visibility per item
-    const [showNotifications, setShowNotifications] = useState(false);
+
 
 
 
@@ -157,66 +157,13 @@ export default function Dashboard() {
                 </div>
 
                 <div className="flex items-center space-x-4">
-                    <div className="relative z-[100]">
-                        <button
-                            onClick={() => setShowNotifications(!showNotifications)}
-                            className="btn-glow p-2 rounded-xl bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 hover:text-indigo-300 transition-all relative"
-                            title="Notifications"
-                        >
-                            <Bell className="w-6 h-6" />
-                            {strengthStats.weakItems.length > 0 && (
-                                <span className="absolute top-1 right-1 block h-2.5 w-2.5 rounded-full ring-2 ring-[#0f172a] bg-red-500"></span>
-                            )}
-                        </button>
-
-
-
-                        {showNotifications && (
-                            <div className="absolute right-0 mt-2 w-80 origin-top-right rounded-xl glass border border-gray-700/50 shadow-xl z-[100] overflow-hidden fade-in">
-                                <div className="p-4">
-                                    <h3 className="text-sm font-bold mb-3" style={{ color: 'var(--text-primary)' }}>Security Alerts</h3>
-                                    {strengthStats.weakItems.length > 0 ? (
-                                        <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
-                                            {strengthStats.weakItems.map(item => (
-                                                <div key={item.id} className="flex items-center justify-between p-2 rounded-lg bg-base-200/50 hover:bg-base-200 transition-colors">
-                                                    <div className="flex items-center min-w-0">
-                                                        <div className="w-8 h-8 rounded-full bg-red-500/20 flex-shrink-0 flex items-center justify-center text-red-500 mr-3">
-                                                            <span className="text-xs font-bold">{item.site.charAt(0).toUpperCase()}</span>
-                                                        </div>
-                                                        <div className="truncate">
-                                                            <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{item.site}</p>
-                                                            <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{item.username}</p>
-                                                        </div>
-                                                    </div>
-                                                    <Link
-                                                        to={`/edit/${item.id}`}
-                                                        className="ml-2 px-2 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-500 transition-colors flex-shrink-0"
-                                                        onClick={() => setShowNotifications(false)}
-                                                    >
-                                                        Fix
-                                                    </Link>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-4">
-                                            <div className="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-2">
-                                                <CheckCircle className="w-5 h-5 text-green-500" />
-                                            </div>
-                                            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>All caught up! No weak passwords.</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
 
                     <Link
                         to="/add"
-                        className="btn-glow flex items-center bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-300"
+                        className="btn-glow flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 sm:px-5 sm:py-2.5 rounded-xl font-medium transition-all duration-300"
                     >
-                        <Plus className="w-5 h-5 mr-1" />
-                        Add Password
+                        <Plus className="w-5 h-5 sm:mr-1 flex-shrink-0" />
+                        <span className="hidden sm:inline">Add Password</span>
                     </Link>
                 </div>
             </div>
@@ -261,64 +208,63 @@ export default function Dashboard() {
                         {/* Security Health Chart - Right Side */}
                         <div className="w-full lg:w-80 flex-shrink-0 lg:sticky lg:top-24 z-0 space-y-6">
                             {/* Chart Card */}
-                            <div className="glass p-6 rounded-2xl glow flex flex-col items-center justify-center relative overflow-hidden">
+                            <div className="glass p-3 sm:p-6 rounded-2xl glow relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-50"></div>
-                                <h3 className="text-lg font-bold mb-2 z-10" style={{ color: 'var(--text-primary)' }}>Security Score</h3>
+                                <h3 className="text-sm sm:text-lg font-bold mb-1 sm:mb-2 z-10" style={{ color: 'var(--text-primary)' }}>Security Score</h3>
 
-                                <div className="w-full h-48 relative z-10 outline-none focus:outline-none active:outline-none">
-                                    <ResponsiveContainer width="100%" height={200}>
-                                        <PieChart>
-                                            <Pie
-                                                data={strengthStats.data}
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius={60}
-                                                outerRadius={80}
-                                                paddingAngle={5}
-                                                dataKey="value"
-                                                stroke="white"
-                                            >
-                                                {strengthStats.data.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                                ))}
-                                            </Pie>
-                                            <RechartsTooltip
-                                                cursor={false}
-                                                contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                                                itemStyle={{ color: 'var(--text-primary)' }}
-                                            />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                    {/* Center Text */}
-                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                        <div className="text-center">
-                                            <span className="text-3xl font-bold gradient-text">{passwords.length}</span>
-                                            <p className="text-xs uppercase tracking-wider opacity-60" style={{ color: 'var(--text-secondary)' }}>Items</p>
+                                <div className="flex flex-row lg:flex-col items-center gap-3 sm:gap-4">
+                                    {/* Pie Chart - Left on mobile, top on desktop sidebar */}
+                                    <div className="w-1/2 lg:w-full h-32 sm:h-48 relative z-10 flex-shrink-0 outline-none focus:outline-none active:outline-none">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={strengthStats.data}
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    innerRadius="50%"
+                                                    outerRadius="70%"
+                                                    paddingAngle={5}
+                                                    dataKey="value"
+                                                    stroke="white"
+                                                >
+                                                    {strengthStats.data.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                                    ))}
+                                                </Pie>
+                                                <RechartsTooltip
+                                                    cursor={false}
+                                                    contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                                                    itemStyle={{ color: 'var(--text-primary)' }}
+                                                />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                        {/* Center Text */}
+                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                            <div className="text-center">
+                                                <span className="text-xl sm:text-3xl font-bold gradient-text">{passwords.length}</span>
+                                                <p className="text-[10px] sm:text-xs uppercase tracking-wider opacity-60" style={{ color: 'var(--text-secondary)' }}>Items</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Custom Legend */}
-                                <div className="w-full grid grid-cols-2 gap-3 mt-4">
-                                    {/* Strong */}
-                                    <div className="flex items-center justify-between p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                                        <span className="text-xs font-medium text-emerald-400">Strong</span>
-                                        <span className="text-sm font-bold text-emerald-300">{strengthStats.data.find(d => d.name === 'Strong')?.value || 0}</span>
-                                    </div>
-                                    {/* Good */}
-                                    <div className="flex items-center justify-between p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                                        <span className="text-xs font-medium text-blue-400">Good</span>
-                                        <span className="text-sm font-bold text-blue-300">{strengthStats.data.find(d => d.name === 'Good')?.value || 0}</span>
-                                    </div>
-                                    {/* Fair */}
-                                    <div className="flex items-center justify-between p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                                        <span className="text-xs font-medium text-amber-400">Fair</span>
-                                        <span className="text-sm font-bold text-amber-300">{strengthStats.data.find(d => d.name === 'Fair')?.value || 0}</span>
-                                    </div>
-                                    {/* Weak */}
-                                    <div className="flex items-center justify-between p-2 rounded-lg bg-red-500/10 border border-red-500/20">
-                                        <span className="text-xs font-medium text-red-400">Weak</span>
-                                        <span className="text-sm font-bold text-red-300">{(strengthStats.data.find(d => d.name === 'Weak')?.value || 0)}</span>
+                                    {/* Legend - Right on mobile, bottom on desktop sidebar */}
+                                    <div className="w-1/2 lg:w-full grid grid-cols-1 lg:grid-cols-2 gap-1.5 sm:gap-3">
+                                        <div className="flex items-center justify-between p-1.5 sm:p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                                            <span className="text-[10px] sm:text-xs font-medium text-emerald-400">Strong</span>
+                                            <span className="text-xs sm:text-sm font-bold text-emerald-300 ml-1">{strengthStats.data.find(d => d.name === 'Strong')?.value || 0}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between p-1.5 sm:p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                                            <span className="text-[10px] sm:text-xs font-medium text-blue-400">Good</span>
+                                            <span className="text-xs sm:text-sm font-bold text-blue-300 ml-1">{strengthStats.data.find(d => d.name === 'Good')?.value || 0}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between p-1.5 sm:p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                                            <span className="text-[10px] sm:text-xs font-medium text-amber-400">Fair</span>
+                                            <span className="text-xs sm:text-sm font-bold text-amber-300 ml-1">{strengthStats.data.find(d => d.name === 'Fair')?.value || 0}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between p-1.5 sm:p-2 rounded-lg bg-red-500/10 border border-red-500/20">
+                                            <span className="text-[10px] sm:text-xs font-medium text-red-400">Weak</span>
+                                            <span className="text-xs sm:text-sm font-bold text-red-300 ml-1">{(strengthStats.data.find(d => d.name === 'Weak')?.value || 0)}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
