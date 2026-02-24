@@ -21,7 +21,19 @@ export function AuthProvider({ children }) {
     // We store the Derived Key in memory and SessionStorage (for reloads).
     // SessionStorage is cleared when the tab is closed, providing a balance of usability and security.
     const [dbKey, setDbKey] = useState(null);
-    const [twoFactorVerified, setTwoFactorVerified] = useState(false);
+    const [twoFactorVerified, _setTwoFactorVerified] = useState(() => {
+        return sessionStorage.getItem('twoFactorVerified') === 'true';
+    });
+
+    // Wrapper that also persists to sessionStorage
+    const setTwoFactorVerified = (value) => {
+        _setTwoFactorVerified(value);
+        if (value) {
+            sessionStorage.setItem('twoFactorVerified', 'true');
+        } else {
+            sessionStorage.removeItem('twoFactorVerified');
+        }
+    };
 
     // Initialize Key from Session Storage on Mount
     useEffect(() => {
@@ -43,8 +55,15 @@ export function AuthProvider({ children }) {
     // Check 2FA Status when user logs in
     useEffect(() => {
         if (currentUser) {
-            check2FAStatus();
-        } else {
+            // If already verified this session (e.g. page reload), skip the check
+            if (sessionStorage.getItem('twoFactorVerified') === 'true') {
+                _setTwoFactorVerified(true);
+            } else {
+                check2FAStatus();
+            }
+        } else if (currentUser === null) {
+            // Only clear on confirmed logout (null from onAuthStateChanged),
+            // NOT on initial mount when currentUser is still undefined.
             setTwoFactorVerified(false);
         }
     }, [currentUser]);
@@ -110,6 +129,7 @@ export function AuthProvider({ children }) {
         setDbKey(null);
         sessionStorage.removeItem('vaultKey');
         sessionStorage.removeItem('lastActiveTime'); // Clear activity timer too
+        sessionStorage.removeItem('twoFactorVerified');
         setTwoFactorVerified(false);
         return signOut(auth);
     }
