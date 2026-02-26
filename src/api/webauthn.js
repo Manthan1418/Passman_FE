@@ -45,10 +45,14 @@ export default {
             // If not (usernameless), server returns options for resident keys.
             // We pass UID if available (from local storage) to help server locate user.
             const resp = await api.post('/auth/webauthn/login/options', { email, uid });
-            const options = resp.data;
+            // Check if data is already parsed as object
+            const options = typeof resp.data === 'string' ? JSON.parse(resp.data) : resp.data;
+
+            const sessionId = options.sessionId;
 
             // 2. Pass options to browser
             let webAuthnOptions = { ...options };
+            delete webAuthnOptions.sessionId;
 
             let asseResp;
             try {
@@ -64,7 +68,8 @@ export default {
             // 3. Send response to server for verification
             const verificationResp = await api.post('/auth/webauthn/login/verify', {
                 ...asseResp,
-                uid: uid // Pass UID again for verification
+                sessionId,
+                uid // Optional, but can still pass if available
             });
 
             if (verificationResp.data.verified) {

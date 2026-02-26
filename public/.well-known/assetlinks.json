@@ -1,0 +1,15 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls",
+            "delegate_permission/common.get_login_creds"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.cipherlock_fe_mobile.app",
+            "sha256_cert_fingerprints": [
+                "CA:A8:D1:A2:E7:D1:01:73:89:23:59:6B:61:BA:06:9D:08:60:D0:78:66:7A:F2:3D:98:88:A2:DE:B2:7D:4B:80"
+            ]
+        }
+    }
+]

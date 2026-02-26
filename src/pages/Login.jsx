@@ -310,13 +310,13 @@ function LoginFormContent() {
     useEffect(() => {
         async function checkAvailability() {
             try {
-                // Check if user has registered passkey on this device (via UID stored in localStorage)
-                const uid = localStorage.getItem('webauthn_user_uid');
+                // For discoverable credentials (passkeys synced via Google/Apple/Dashlane), 
+                // we should offer the passkey login if the platform supports it at all.
+                // We no longer rely on a locally stored UID, allowing cross-device sync to work seamlessly.
 
-                // If UID is present, we assume biometrics might be available and let the browser handle it.
-                // The @simplewebauthn platformAuthenticatorIsAvailable check sometimes returns false 
-                // on mobile browsers even when passkeys are available, so we rely more on the UID.
-                if (uid) {
+                // We use dynamic import so it doesn't break environments without it
+                const { browserSupportsWebAuthn } = await import('@simplewebauthn/browser');
+                if (browserSupportsWebAuthn()) {
                     setIsBiometricAvailable(true);
                 } else {
                     setIsBiometricAvailable(false);

@@ -150,9 +150,6 @@ export function AuthProvider({ children }) {
             const exportedKey = await exportKey(dbKey);
             localStorage.setItem('biometric_vault_key', exportedKey);
 
-            // 3. Save User UID to LocalStorage for retrieval during login (since we don't have email-to-uid lookup)
-            localStorage.setItem('webauthn_user_uid', currentUser.uid);
-
             return true;
         } catch (e) {
             console.error(e);
@@ -160,19 +157,13 @@ export function AuthProvider({ children }) {
         }
     }
 
-    async function loginWithBiometrics() {
+    async function loginWithBiometrics(email = null) {
         try {
             const { default: apiWebAuthn } = await import('../api/webauthn');
 
-            // Retrieve stored UID
-            const uid = localStorage.getItem('webauthn_user_uid');
-
-            if (!uid) {
-                console.warn("WebAuthn UID not found in localStorage.");
-                throw new Error("Biometric sign-in isn't set up on this device yet.");
-            }
-
-            const result = await apiWebAuthn.loginWithBiometrics(null, uid);
+            // For discoverable credentials, we don't need a UID. The authenticator provides it.
+            // Passkey assertion options will be fetched generically.
+            const result = await apiWebAuthn.loginWithBiometrics(email, null);
 
             if (result.verified && result.token) {
                 // 1. Sign in with Firebase (using custom token from backend)
